@@ -17,10 +17,6 @@ while True:
     hausverbrauch = modbusclient.read_holding_registers(40071)[0]
     soc = modbusclient.read_holding_registers(40082)[0]
     mytime = datetime.datetime.utcnow()
-    print("pv: ",pv)
-    print("hausverbrauch: ",hausverbrauch)
-    print("soc: ",soc)
-    print("time: ",mytime)
     influxdata_pv=[
     {
         "measurement": "pvLeistung",
