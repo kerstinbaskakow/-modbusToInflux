@@ -21,18 +21,38 @@ while True:
     print("hausverbrauch: ",hausverbrauch)
     print("soc: ",soc)
     print("time: ",mytime)
-    influxdata=[
+    influxdata_pv=[
     {
-        "measurement": "MyPVAnlageData"
-        ,
+        "measurement": "pvLeistung",
         "time":mytime,
         "fields": {
-            "pv": pv,
-            "hausverbrauch":hausverbrauch,
-            "soc":soc
+            "value": pv,
                     }
     }]
-    influxclient.write_points(influxdata, database='iobroker', time_precision='ms', batch_size=10000, protocol='json')
+    influxdata_haus=[
+    {
+        "measurement": "hausverbrauch",
+        "time":mytime,
+        "fields": {
+            "value":hausverbrauch,
+                    }
+    }]
+    influxdata_batterie=[
+    {
+        "measurement": "soc",
+        "time":mytime,
+        "fields": {
+            "value":soc,
+                    }
+    }]
+
+    
+    
+    
+    influxclient.write_points(influxdata_pv, database='iobroker', time_precision='ms', batch_size=10000, protocol='json')
+    influxclient.write_points(influxdata_haus, database='iobroker', time_precision='ms', batch_size=10000, protocol='json')
+    influxclient.write_points(influxdata_batterie, database='iobroker', time_precision='ms', batch_size=10000, protocol='json')
+
     #print(influxclient.query('SELECT * FROM "MyPVAnlageData"'))
     time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
