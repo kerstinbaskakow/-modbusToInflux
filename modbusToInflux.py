@@ -23,9 +23,32 @@ measurement_items = {40067:'pv',
 #define storing time as timebase in influx and grafana
 mytime = datetime.datetime.utcnow()
 
+#initialize list of datapoints that should be stored in influxdb
+influxdata=[]
+#alive counter integration to check why modbus values are not available
+alivecounter = influxclient.query('SELECT value FROM alivecounter order by time desc limit 1')
+print(alivecounter)
+if alivecounter:
+    alivecounter_value = list(alivecounter.get_points(measurement='alivecounter'))[0]['value']
+    if alivecounter_value > 14:
+        alivecounter_value = 0
+    else:
+        alivecounter_value=alivecounter_value +1
+else:
+    alivecounter_value = 0
+
+
+
+influxdata.append({
+        "measurement": "alivecounter",
+        "time":mytime,
+        "fields": {
+                "value": alivecounter_value,
+                }
+        })
 #define measurement points, each point is a dictionary appended to a list of 
 #points
-influxdata=[]
+
 for key,reg in measurement_items.items():
     regs = modbusclient.read_holding_registers(key)[0]
     #one register contains two unit8 values, therefore it is converted to 
@@ -69,7 +92,7 @@ for key,reg in measurement_items.items():
             })
     
 
-print(influxdata)
+#print(influxdata)
 
 #write points to influx database
 influxclient.write_points(influxdata, database='iobroker', time_precision='ms', batch_size=10000, protocol='json')

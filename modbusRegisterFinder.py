@@ -43,7 +43,7 @@ for x in range(40000,40100,1):
     #else:
     #    df.loc[x] = [name,regs,None,rawBin]
 #df.to_csv('modbusRegisterList.csv')            
-print(df)
+#print(df)
 
 modbusclient.close()
 
