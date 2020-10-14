@@ -27,7 +27,6 @@ mytime = datetime.datetime.utcnow()
 influxdata=[]
 #alive counter integration to check why modbus values are not available
 alivecounter = influxclient.query('SELECT value FROM alivecounter order by time desc limit 1')
-print(alivecounter)
 if alivecounter:
     alivecounter_value = list(alivecounter.get_points(measurement='alivecounter'))[0]['value']
     if alivecounter_value > 14:
@@ -50,18 +49,36 @@ influxdata.append({
 #points
 
 for key,reg in measurement_items.items():
+    print(reg,key)
     regs = modbusclient.read_holding_registers(key)[0]
+    print(regs)
     #one register contains two unit8 values, therefore it is converted to 
     #bin and split after 8 bits, the reformated to dec
     if reg=='AutarkieUndEigenverbrauch':
-        autarkie=int(bin(regs).split('0b')[1][0:-8],2)
-        influxdata.append({
-            "measurement": "autarkie",
-            "time":mytime,
-            "fields": {
-                "value": autarkie,
-                        }
-            })
+        print(reg,':')
+        print('raw value: ',regs)
+        print('binvalue:',bin(regs))
+        print(bin(regs).split('0b')[1])
+        print('binvalue aftersplit:',bin(regs).split('0b')[1][0:-8])
+        if (bin(regs).split('0b')[1][0:-8]):
+            autarkie=int(bin(regs).split('0b')[1][0:-8],2)
+            print('autarkie:',autarkie)
+            influxdata.append({
+                "measurement": "autarkie",
+                "time":mytime,
+                "fields": {
+                    "value": autarkie,
+                            }
+                })
+        else:
+                        
+            influxdata.append({
+                "measurement": "autarkie",
+                "time":mytime,
+                "fields": {
+                    "value": 0,
+                            }
+                })
         eigenverbrauch = int(bin(regs).split('0b')[1][-8:],2)
         influxdata.append({
             "measurement": "eigenverbrauch",
@@ -72,6 +89,7 @@ for key,reg in measurement_items.items():
             })
     #chech signed  ints for leading bit to be 1 or 0, 1 means negativ values
     elif reg:
+        print(reg,'elif')
         #positive values
         if regs<32768:
             influxdata.append({

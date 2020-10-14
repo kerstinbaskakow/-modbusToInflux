@@ -24,10 +24,12 @@ print('Batterie: positiv: Laden, Negativ:entladen')
 print('Netz: positiv: Bezug, Negativ: Einspeisen')
 df = pd.DataFrame(columns=['name','rawValue','physValue','rawBin'])
 
+registerListe = []
 for x in range(40000,40100,1):
 
     regs = modbusclient.read_holding_registers(x)[0]
     print(x,regs)
+    registerListe.append((x,regs))
     rawBin= bin(regs).split('0b')[1]
     name = measurement_items.get(x)
     if name=='AutarkieUndEigenverbrauch':
@@ -42,8 +44,10 @@ for x in range(40000,40100,1):
             df.loc[x] = [name,regs,regs-65535,rawBin]
     #else:
     #    df.loc[x] = [name,regs,None,rawBin]
-#df.to_csv('modbusRegisterList.csv')            
-#print(df)
+#df.to_csv('modbusRegisterList.csv')
+df_register = pd.DataFrame(registerListe,columns=['register','rawValue'])           
+print(df_register)
+df_register.to_csv('modbusUnknownRegisterList.csv')
 
 modbusclient.close()
 
