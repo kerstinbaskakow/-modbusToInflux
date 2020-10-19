@@ -68,7 +68,7 @@ for register in df.registername.unique():
 #calculate energy:
 for item in Config.ENERGIE_ITEMS:
     energie=df[df['registername']==item]['value'].sum()  
-    energie_wh=(energie/Config.PERIOD)/3600
+    energie_wh=energie/3600
     influxdata.append({
             "measurement": item[:-8]+'energie',
             "time":storingtime,
