@@ -33,7 +33,6 @@ def calc_energy_statistic(modul,client,storingtime):
     energy = client.query(query)
     energy_value = list(energy.get_points(measurement='{}energie'.format(modul)))
     df = pd.DataFrame(energy_value)   
-    
     bodyDB = [{
         "measurement": '{}statistik'.format(modul),
         "time": storingtime,
@@ -46,6 +45,7 @@ def calc_energy_statistic(modul,client,storingtime):
             "quartile50": df.describe().loc['50%'],
             "quartile75": df.describe().loc['75%'],
             "max": df.describe().loc['max'],
+            "min": df.describe().loc['min'],
             "sum": df['value'].sum(),
             "pos_sum": df[df['value']>0]['value'].sum(),
             "neg_sum": df[df['value']<0]['value'].sum(),
@@ -53,10 +53,26 @@ def calc_energy_statistic(modul,client,storingtime):
             
         }
     }]
-
     influxclient.write_points(bodyDB, database='iobroker', time_precision='s', batch_size=10000, protocol='json')
+    return df
 
-
+autark_dict=dict()
 for item in Config.ENERGIE_ITEMS:
-    calc_energy_statistic(item[:-8],influxclient,storingtime)
+    df = calc_energy_statistic(item[:-8],influxclient,storingtime)
+    autark_dict[item[:-8]] = df[df['value']>0]['value'].sum()
+
+if autark_dict['netz'] <= autark_dict['hausverbrauch']:
+    autarkiewert = int((1-(autark_dict['netz']/autark_dict['hausverbrauch']))*100)
+else:
+    autarkiewert = 0
+
+bodyAutarkie = [{
+        "measurement": 'autarkie',
+        "time": storingtime,
+        "fields":
+        {
+            "value_kb": autarkiewert
+        }
+    }]
+influxclient.write_points(bodyAutarkie, database='iobroker', time_precision='s', batch_size=10000, protocol='json')
 

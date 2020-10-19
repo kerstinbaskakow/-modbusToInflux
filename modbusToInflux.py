@@ -62,7 +62,7 @@ for register in df.registername.unique():
             "measurement": register,
             "time":storingtime,
             "fields": {
-                "value": int(meanvalue),
+                "value": int(meanvalue)
                         }
             })
 #calculate energy:
@@ -73,7 +73,7 @@ for item in Config.ENERGIE_ITEMS:
             "measurement": item[:-8]+'energie',
             "time":storingtime,
             "fields": {
-                "value": energie_wh,
+                "value": energie_wh
                         }
             })  
 
