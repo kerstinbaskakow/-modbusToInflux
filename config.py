@@ -11,7 +11,8 @@ class Config:
     MOD_HOST="192.168.2.108"
     INFLUX_PORT=8086
     INFLUX_HOST='localhost'
-    PERIOD=120
+    PERIOD=2
+    PERIOD_STREAM=2
     
      #definition of to be meassured items by register number
     MEASUREMENT_ITEMS = {40067:'photovoltaikleistung',
