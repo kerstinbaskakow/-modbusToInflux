@@ -1,70 +1,52 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Nov 14 14:40:33 2020
+from flask import Flask
+import json
+from config import Config
+from pyModbusTCP.client import ModbusClient
 
-@author: kerstin
-"""
+class ModbusData():
+    def __init__(self,Config=Config):
+        self.modbusclient=ModbusClient(host=Config.MOD_HOST,port=Config.MOD_PORT)
+        self.data = []
+        self.MEASUREMENT_ITEMS = {40067:'photovoltaikleistung',
+                         40071:'hausverbrauchleistung',
+                         40082:'soc',
+                         40069:'batterieleistung',
+                         40073:'netzleistung'
+                         }
+#-----define measurement points, each point is a dictionary which -------- 
+#----------- is appended to a list of values ---------------------------------
+    def addData(self):
+        self.modbusclient.open()      
+        for key,reg in self.MEASUREMENT_ITEMS.items():
+            regs = self.modbusclient.read_holding_registers(key)[0]
+            #chech signed  ints for leading bit to be 1 or 0, 1 means negativ values
+            #positive values
+            if regs<32768:
+                value = self.modbusclient.read_holding_registers(key)[0]
+            #negative values (substract 65535 for physical values)
+            else:
+                value = self.modbusclient.read_holding_registers(key)[0]-65535
+            self.data.append({
+                    reg:value
+                    })
+            
 
-from bottle import Bottle, HTTPResponse, run, request, response, json_dumps
-from ModbusData import ModbusData
+        self.modbusclient.close()
+        return self.data
 
-#dataMod = ModbusData(period=2)
-#data = dataMod.addData()
-#print(data)
-
-app = Bottle()
-
-@app.get("/")
-def index():
-    return "OK"
-
-@app.hook('after_request')
-def enable_cors():
-    print("after_request hook")
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Accept, Content-Type'
-
-@app.post('/search')
+app = Flask(__name__)
+dataMod = ModbusData()
+@app.route('/search', methods=['POST','GET'])
 def search():
-    return HTTPResponse(body=json_dumps(['series A', 'series B']),
-                            headers={'Content-Type': 'application/json'})
-    
-@app.post('/query')
-def query():
-    if request.json['targets'][0]['type'] == 'table':
-        series = request.json['targets'][0]['target']
-        bodies = {'series A': [{
-        "columns":[
-          {"text":"Time","type":"time"},
-          {"text":"Country","type":"string"},
-          {"text":"Number","type":"number"}
-        ],
-        "rows":[
-          [1234567,"SE",123],
-          [1234567,"DE",231],
-          [1234567,"US",321]
-        ],
-        "type":"table"
-        }], 'series B': [{
-        "columns":[
-          {"text":"Time","type":"time"},
-          {"text":"Country","type":"string"},
-          {"text":"Number","type":"number"}
-        ],
-        "rows":[
-          [1234567,"BE",123],
-          [1234567,"GE",231],
-          [1234567,"PS",321]
-        ],
-        "type":"table"
-        }]}
+    data = dataMod.addData()
+    return json.dumps(data)
 
-        series = request.json['targets'][0]['target']
-        body = json_dumps(bodies[series])
-        return HTTPResponse(body=body,
-                            headers={'Content-Type': 'application/json'})
+
+@app.route('/', methods=['POST','GET'])
+def show():
+    #dataMod = ModbusData()
+    data = dataMod.addData()
+    return json.dumps(data)
 
 if __name__ == '__main__':
-    run(app=app, host='localhost', port=8085)
+    app.run(host='localhost', port=8085)
