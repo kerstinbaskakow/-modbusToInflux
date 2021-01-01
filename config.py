@@ -15,11 +15,14 @@ class Config:
     PERIOD_STREAM=2
     
      #definition of to be meassured items by register number
-    MEASUREMENT_ITEMS = {40067:'photovoltaikleistung',
-                         40071:'hausverbrauchleistung',
+    MEASUREMENT_ITEMS = {40067:'modbus.0.holdingRegisters.40067_PV_Leistung',
+                         40071:'modbus.0.holdingRegisters.40071_Hausverbrauch_Leistung',
                          40082:'soc',
-                         40069:'batterieleistung',
-                         40073:'netzleistung',
+                         40069:'modbus.0.holdingRegisters.40069_Batterie_Leistung',
+                         40073:'modbus.0.holdingRegisters.40073_Netz_Leistung',
                          40081:'AutarkieUndEigenverbrauch'
                          }
-    ENERGIE_ITEMS = ['photovoltaikleistung','hausverbrauchleistung','batterieleistung','netzleistung']
+    ENERGIE_ITEMS = ['modbus.0.holdingRegisters.40067_PV_Leistung',
+                     'modbus.0.holdingRegisters.40071_Hausverbrauch_Leistung',
+                     'modbus.0.holdingRegisters.40069_Batterie_Leistung',
+                     'modbus.0.holdingRegisters.40073_Netz_Leistung']
